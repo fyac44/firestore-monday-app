@@ -1,0 +1,26 @@
+{
+  "name": "firestore-monday-app",
+  "version": "1.0.0",
+  "description": "Monday.com app that acces to a firestore database",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fyac44/firestore-monday-app.git"
+  },
+  "author": "Franklin Alvarez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fyac44/firestore-monday-app/issues"
+  },
+  "homepage": "https://github.com/fyac44/firestore-monday-app#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "firebase-admin": "^9.4.1",
+    "jsonwebtoken": "^8.5.1",
+    "monday-sdk-js": "^0.1.1"
+  }
+}
