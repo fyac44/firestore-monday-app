@@ -11,22 +11,18 @@ const colRef = db.collection(colName);
 
 
 class FirebaseService {
-  static async updateItems(items) {
+  static async updateItems(items, boardId) {
     try {
       var mondayItemNames = [];
-      items.map( item => {
+      items.filter(item => (item.board.id == boardId)).map( item => {
         mondayItemNames.push(item.name);
-        colRef.add({
-          name: item.name,
-          boardId: item.board.id,
-          groupId: item.group.id,
-          groupTitle: item.group.title
-        });
+        colRef.doc(item.name).set(item);
       });
       // delete unexistent documents
-      colRef.get().map(doc => {
+      const snapshot = await colRef.get();
+      snapshot.forEach(doc => {
         if (!mondayItemNames.includes(doc.data().name)) {
-          doc.delete();
+          colRef.doc(doc.id).delete();
         }
       });
     }

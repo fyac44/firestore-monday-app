@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv').config();
 const SHARED_SECRET = process.env.MONDAY_SIGNING_SECRET;
 
-async function authenticationMonday(req, res, next) {
+async function mondayMiddleware(req, res, next) {
   try {
       let { authorization } = req.headers;
       if (!authorization && req.query) {
@@ -22,26 +22,44 @@ async function authenticationMonday(req, res, next) {
 }
 
 class MondayService {
-  static async getItems(token, boardId) {
+  static async getItems(token) {
     try {
       const mondayClient = initMondayClient();
       mondayClient.setToken(token);
 
-      const query = `query ($boardId: [Int]) {
-        items {
-          name,
-          state,
+      const query = `query {
+        items (limit: 100) {
+          id
+          name
+          state
+          board {
+            id
+            name
+          }
+          creator {
+            id
+            name
+          }
+          created_at
+          updated_at
           group {
-            id,
+            id
             title
-          },
-          board { 
-            id 
+          }
+          column_values {
+            title
+            text
+          }
+          assets {
+            id
+            name
+          }
+          subscribers {
+            name
           }
         }
       }`;
-      const variables = { boardId };
-      const response = await mondayClient.api( query, {variables} );
+      const response = await mondayClient.api( query );
       const itemList = response.data.items.filter(item => (item.state === "active"));
       return itemList;
     }
@@ -49,51 +67,9 @@ class MondayService {
       console.log(err);
     }
   }
-  
-    /*
-  static async getColumnValue(token, itemId, columnId) {
-    try {
-      const mondayClient = initMondayClient();
-      mondayClient.setToken(token);
-
-      const query = `query($itemId: [Int], $columnId: [String]) {
-        items (ids: $itemId) {
-          column_values(ids:$columnId) {
-            value
-          }
-        }
-      }`;
-      const variables = { columnId, itemId };
-
-      const response = await mondayClient.api(query, { variables });
-      return response.data.items[0].column_values[0].value;
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  static async changeColumnValue(token, boardId, itemId, columnId, value) {
-    try {
-      const mondayClient = initMondayClient({ token });
-
-      const query = `mutation change_column_value($boardId: Int!, $itemId: Int!, $columnId: String!, $value: JSON!) {
-        change_column_value(board_id: $boardId, item_id: $itemId, column_id: $columnId, value: $value) {
-          id
-        }
-      }
-      `;
-      const variables = { boardId, columnId, itemId, value };
-
-      const response = await mondayClient.api(query, { variables });
-      return response;
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  */
 }
 
 module.exports = {
   MondayService,
-  authenticationMonday
+  mondayMiddleware
 }
