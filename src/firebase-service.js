@@ -1,51 +1,49 @@
-const { db } = require('./index');
+// Initialize firebase app
+var admin = require("firebase-admin");
+var serviceAccount = require("../firebaseAdminKey.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://fir-monday-30a2d.firebaseio.com"
+});
+const colName = "mondayItems";
+const db = admin.firestore();
+const colRef = db.collection(colName);
+
 
 class FirebaseService {
-    static async updateItemsCollection(items) {
-        const collectionName = "mondayItems";
-        const colRef = db.collection(collectionName);
-        items.map( item => {
-            colRef.add({
-                name: item.name,
-                boardId: item.board.id,
-                groupId: item.group.id,
-                groupTitle: item.group.title
-            })
-        })
-    }
-
-    /*
-    static async transformText(value, type) {
-      switch (type) {
-        case 'TO_UPPER_CASE':
-          return value.toUpperCase();
-        case 'TO_LOWER_CASE':
-          return value.toLowerCase();
-        default:
-          return value.toUpperCase();
-      }
-  
-    }
-  
-    static async changeColumnValue(token, boardId, itemId, columnId, value) {
-      try {
-        const mondayClient = initMondayClient({ token });
-  
-        const query = `mutation change_column_value($boardId: Int!, $itemId: Int!, $columnId: String!, $value: JSON!) {
-          change_column_value(board_id: $boardId, item_id: $itemId, column_id: $columnId, value: $value) {
-            id
-          }
+  static async updateItems(items) {
+    try {
+      var mondayItemNames = [];
+      items.map( item => {
+        mondayItemNames.push(item.name);
+        colRef.add({
+          name: item.name,
+          boardId: item.board.id,
+          groupId: item.group.id,
+          groupTitle: item.group.title
+        });
+      });
+      // delete unexistent documents
+      colRef.get().map(doc => {
+        if (!mondayItemNames.includes(doc.data().name)) {
+          doc.delete();
         }
-        `;
-        const variables = { boardId, columnId, itemId, value };
-  
-        const response = await mondayClient.api(query, { variables });
-        return response;
-      } catch (err) {
-        console.log(err);
-      }
+      });
     }
-    */
+    catch (err) {
+      console.log(err);
+    }
+  }
+
+  static async getItems() {
+    try {
+      const firestoreItemNames = colRef.get().map(doc => doc.data().name);
+      return firestoreItemNames;
+    }
+    catch (err) {
+      console.log(err);
+    }
+  }
 }
   
-  module.exports = FirebaseService;
+module.exports = { FirebaseService };
